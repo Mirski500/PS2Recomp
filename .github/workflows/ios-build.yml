@@ -1,0 +1,67 @@
+name: Build unsigned IPA
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: macos-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Guard - no game files tracked
+        run: |
+          if git ls-files | grep -Ei '\.(iso|bin|irx|elf|img)$|(^|/)(SLUS|SLES)_'; then
+            echo "::error::Game files are tracked in git. Remove them before building."
+            exit 1
+          fi
+
+      - name: Toolchain info
+        run: |
+          xcodebuild -version
+          xcrun --sdk iphoneos --show-sdk-version
+          ls lifted 2>/dev/null | head -5 || echo "lifted/ not present: building shell only"
+
+      - name: Install XcodeGen
+        run: brew install xcodegen
+
+      - name: Generate Xcode project
+        run: xcodegen generate
+
+      - name: Build (unsigned, arm64)
+        run: |
+          set -o pipefail
+          xcodebuild \
+            -project BT3Shell.xcodeproj \
+            -scheme BT3Shell \
+            -configuration Release \
+            -sdk iphoneos \
+            -destination 'generic/platform=iOS' \
+            -derivedDataPath build \
+            ARCHS=arm64 ONLY_ACTIVE_ARCH=NO \
+            CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO CODE_SIGN_IDENTITY="" \
+            build 2>&1 | tee xcodebuild.log
+
+      - name: Package unsigned IPA
+        run: |
+          APP=$(find build/Build/Products -maxdepth 2 -name 'BT3Shell.app' | head -1)
+          test -n "$APP" || { echo "::error::BT3Shell.app not found"; exit 1; }
+          rm -rf Payload BT3Shell-unsigned.ipa
+          mkdir Payload
+          cp -R "$APP" Payload/
+          zip -qry BT3Shell-unsigned.ipa Payload
+          ls -lh BT3Shell-unsigned.ipa
+
+      - uses: actions/upload-artifact@v7
+        with:
+          name: BT3Shell-unsigned-ipa
+          path: BT3Shell-unsigned.ipa
+
+      - uses: actions/upload-artifact@v7
+        if: failure()
+        with:
+          name: xcodebuild-log
+          path: xcodebuild.log
