@@ -36,9 +36,7 @@ jobs:
 
       - name: Generate Xcode project
         run: |
-          pwd
-          ls -la
-          ls -la Shell || true
+          if [ -d " Shell" ]; then mv " Shell" Shell; fi
           xcodegen generate
 
       - name: Build (unsigned, arm64)
