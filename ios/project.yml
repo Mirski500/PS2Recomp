@@ -20,7 +20,7 @@ targets:
     type: application
     platform: iOS
     sources:
-      - path: ../Shell
+      - path: Shell
       # Optional, game-derived, NOT committed by default (see .gitignore).
       # Only C++ sources/headers are picked up, so lift_report.json and vutext/* are never bundled.
       - path: lifted
