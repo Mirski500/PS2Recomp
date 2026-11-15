@@ -1,0 +1,18 @@
+# Game data and anything derived from it must never reach a public repo.
+*.iso
+*.bin
+*.irx
+*.elf
+*.img
+SLUS_*
+SLES_*
+bt3_out/
+# Lifted C++ is a derivative of the game's code. Remove this line ONLY in a PRIVATE repo
+# if you want GitHub Actions to compile it into the IPA.
+lifted/
+# generated
+*.xcodeproj/
+Support/
+build/
+*.ipa
+.DS_Store
