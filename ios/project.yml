@@ -1,0 +1,63 @@
+name: BT3Shell
+options:
+  bundleIdPrefix: com.example
+  deploymentTarget:
+    iOS: "16.0"
+settings:
+  base:
+    ARCHS: arm64
+    CODE_SIGNING_ALLOWED: "NO"
+    CODE_SIGNING_REQUIRED: "NO"
+    CODE_SIGN_IDENTITY: ""
+    CLANG_CXX_LANGUAGE_STANDARD: gnu++17
+    CLANG_ENABLE_OBJC_ARC: "YES"
+  configs:
+    Release:
+      # lifted code is hundreds of thousands of lines; -O1 keeps CI compile time sane
+      GCC_OPTIMIZATION_LEVEL: "1"
+targets:
+  BT3Shell:
+    type: application
+    platform: iOS
+    sources:
+      - path: Shell
+      # Optional, game-derived, NOT committed by default (see .gitignore).
+      # Only C++ sources/headers are picked up, so lift_report.json and vutext/* are never bundled.
+      - path: lifted
+        optional: true
+        includes:
+          - "*.cpp"
+          - "*.h"
+    dependencies:
+      - sdk: UIKit.framework
+      - sdk: Metal.framework
+      - sdk: MetalKit.framework
+      - sdk: QuartzCore.framework
+      - sdk: UniformTypeIdentifiers.framework
+    settings:
+      base:
+        PRODUCT_NAME: BT3Shell
+        PRODUCT_BUNDLE_IDENTIFIER: com.example.bt3shell
+        TARGETED_DEVICE_FAMILY: "1"
+        HEADER_SEARCH_PATHS: "$(SRCROOT)/lifted"
+    info:
+      path: Support/Info.plist
+      properties:
+        CFBundleDisplayName: BT3 Shell
+        UIFileSharingEnabled: true
+        LSSupportsOpeningDocumentsInPlace: true
+        UIRequiresFullScreen: true
+        ITSAppUsesNonExemptEncryption: false
+        UILaunchScreen: {}
+        UIRequiredDeviceCapabilities:
+          - arm64
+          - metal
+        UISupportedInterfaceOrientations:
+          - UIInterfaceOrientationLandscapeLeft
+          - UIInterfaceOrientationLandscapeRight
+        UIApplicationSceneManifest:
+          UIApplicationSupportsMultipleScenes: false
+          UISceneConfigurations:
+            UIWindowSceneSessionRoleApplication:
+              - UISceneConfigurationName: Default Configuration
+                UISceneDelegateClassName: SceneDelegate
